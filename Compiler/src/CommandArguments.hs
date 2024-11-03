@@ -13,10 +13,10 @@ parseCommandArgs = execParser opts
 opts :: ParserInfo Arguments
 opts = info (commandArguments <**> helper)
 	(fullDesc
-	  <> progDesc "Build Jerm sourcecode into Jerm byte code"
-	  <> header "Jerm Compiler")
+		<> progDesc "Build Jerm sourcecode into Jerm byte code"
+		<> header "Jerm Compiler")
 
 commandArguments :: Parser Arguments
 commandArguments =
-		Arguments <$> strOption (long "source" <> help "Source file to build")
-		<*> strOption (long "output" <> help "Output build")
+	Arguments <$> strOption (long "source" <> help "Source file to build")
+	<*> strOption (long "output" <> help "Output build")
