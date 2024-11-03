@@ -10,6 +10,8 @@ executable JermCompiler
     build-depends:    
         base ^>=4.17.2.1,
         optparse-applicative,
-        parsec
+        parsec,
+        binary,
+        bytestring
     hs-source-dirs: src
     default-language: GHC2021

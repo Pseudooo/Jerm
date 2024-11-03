@@ -1,5 +1,5 @@
 
-module CommandArguments (Arguments, commandArguments, opts, parseCommandArgs) where
+module CommandArguments (Arguments, source, output, parseCommandArgs) where
 
 import Options.Applicative
 

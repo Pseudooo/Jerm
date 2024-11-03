@@ -6,6 +6,11 @@ import Text.Parsec.String
 import Text.Parsec.Combinator
 import System.Environment (getArgs)
 import CommandArguments
+import System.IO
+import qualified Data.ByteString.Lazy as BS
+import Data.Binary.Put
+import Data.Word
+
 
 data Statement = VariableInitialisation String Expression
     | VariableAssignment String Expression
@@ -22,16 +27,21 @@ data Operator = Add | Sub | Mul | Div
 data ValueLiteral = IntegerLiteral Integer
     deriving (Show)
 
-
-
 type StackLocal = (String, Integer)
-
-
 
 main :: IO ()
 main = do
     options <- parseCommandArgs
-    putStrLn . show $ options
+    parseResult <- parseFromFile statements (source options)
+    case parseResult of
+        Left parseError -> (putStrLn . show $ parseError) >> return ()
+        Right sourceTree -> do
+            let byteCode = transpile sourceTree
+            BS.writeFile (output options) (runPut $ asWords byteCode)
+            putStrLn $ "Source code built to " ++ output options
+
+asWords :: [Integer] -> Put
+asWords xs = mapM_ putWord32le (map fromIntegral xs)
 
 
 {--
@@ -159,6 +169,3 @@ parseNumericLiteral = lexeme $ do
     return $ case sign of
         Nothing -> IntegerLiteral parsedInt
         Just _ -> IntegerLiteral $ negate parsedInt
-
-
-
