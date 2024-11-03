@@ -1,8 +1,6 @@
-
 module CommandArguments (Arguments, source, output, parseCommandArgs) where
 
 import Options.Applicative
-
 
 data Arguments = Arguments {
 	source :: String,
@@ -22,4 +20,3 @@ commandArguments :: Parser Arguments
 commandArguments =
 		Arguments <$> strOption (long "source" <> help "Source file to build")
 		<*> strOption (long "output" <> help "Output build")
-

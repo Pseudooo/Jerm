@@ -11,7 +11,6 @@ import qualified Data.ByteString.Lazy as BS
 import Data.Binary.Put
 import Data.Word
 
-
 data Statement = VariableInitialisation String Expression
     | VariableAssignment String Expression
     deriving (Show)
@@ -42,7 +41,6 @@ main = do
 
 asWords :: [Integer] -> Put
 asWords xs = mapM_ putWord32le (map fromIntegral xs)
-
 
 {--
     Transpiler
@@ -75,7 +73,6 @@ transpileExpression _ (ConstantExpression (IntegerLiteral x)) = 1 : x : []
 transpileExpression stackLocals (ReferenceExpression name) = 3 : getLocalOffset stackLocals name : []
 transpileExpression stackLocals (BinaryExpression _ left right) = transpileExpression stackLocals left ++ transpileExpression stackLocals right ++ [4]
 
-
 localsSize :: [Statement] -> Integer
 localsSize (x:xs) = case x of
     (VariableInitialisation _ _) -> 1 + localsSize xs
@@ -93,8 +90,6 @@ expressionEvalStackSize :: Expression -> Integer
 expressionEvalStackSize (ReferenceExpression _) = 1
 expressionEvalStackSize (ConstantExpression _) = 1
 expressionEvalStackSize (BinaryExpression _ left right) = max (expressionEvalStackSize left) (expressionEvalStackSize right) + 1
-
-
 
 {--
     Utility Functions
@@ -134,7 +129,6 @@ assignmentStatement = lexeme $ do
     symbol ";"
     return $ VariableAssignment varName value
 
-
 {-- 
     Expression parsing
 --}
@@ -155,8 +149,6 @@ divExpression = chainl1 ((ConstantExpression <$> parseNumericLiteral) <|> (varia
 
 parens :: Parser a -> Parser a
 parens = between (symbol "(") (symbol ")")
-
-
 
 variableReference :: Parser Expression
 variableReference = ReferenceExpression <$> (lexeme $ many1 letter)
