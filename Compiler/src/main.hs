@@ -13,17 +13,10 @@ import Data.Word
 import CommandArguments
 import Utils
 import Literals
+import Expressions
 
 data Statement = VariableInitialisation String Expression
     | VariableAssignment String Expression
-    deriving (Show)
-
-data Expression = ConstantExpression ValueLiteral
-    | BinaryExpression Operator Expression Expression
-    | ReferenceExpression String
-    deriving (Show)
-
-data Operator = Add | Sub | Mul | Div
     deriving (Show)
 
 type StackLocal = (String, Integer)
@@ -91,7 +84,6 @@ expressionEvalStackSize (ReferenceExpression _) = 1
 expressionEvalStackSize (ConstantExpression _) = 1
 expressionEvalStackSize (BinaryExpression _ left right) = max (expressionEvalStackSize left) (expressionEvalStackSize right) + 1
 
-
 {-
     Statement parsing
 -}
@@ -117,27 +109,3 @@ assignmentStatement = lexeme $ do
     value <- parseExpression
     symbol ";"
     return $ VariableAssignment varName value
-
-{-- 
-    Expression parsing
---}
-parseExpression :: Parser Expression
-parseExpression = lexeme subExpression
-
-subExpression :: Parser Expression
-subExpression = chainl1 addExpression (BinaryExpression Sub <$ symbol "-")
-
-addExpression :: Parser Expression
-addExpression = chainl1 mulExpression (BinaryExpression Add <$ symbol "+")
-
-mulExpression :: Parser Expression
-mulExpression = chainl1 divExpression (BinaryExpression Mul <$ symbol "*")
-
-divExpression :: Parser Expression
-divExpression = chainl1 ((ConstantExpression <$> integerLiteral) <|> (variableReference) <|> parens parseExpression) (BinaryExpression Div <$ symbol "/")
-
-parens :: Parser a -> Parser a
-parens = between (symbol "(") (symbol ")")
-
-variableReference :: Parser Expression
-variableReference = ReferenceExpression <$> (lexeme $ many1 letter)
