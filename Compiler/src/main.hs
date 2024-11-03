@@ -5,11 +5,14 @@ import Text.Parsec.Char
 import Text.Parsec.String
 import Text.Parsec.Combinator
 import System.Environment (getArgs)
-import CommandArguments
 import System.IO
 import qualified Data.ByteString.Lazy as BS
 import Data.Binary.Put
 import Data.Word
+
+import CommandArguments
+import Utils
+import Literals
 
 data Statement = VariableInitialisation String Expression
     | VariableAssignment String Expression
@@ -21,9 +24,6 @@ data Expression = ConstantExpression ValueLiteral
     deriving (Show)
 
 data Operator = Add | Sub | Mul | Div
-    deriving (Show)
-
-data ValueLiteral = IntegerLiteral Integer
     deriving (Show)
 
 type StackLocal = (String, Integer)
@@ -91,17 +91,6 @@ expressionEvalStackSize (ReferenceExpression _) = 1
 expressionEvalStackSize (ConstantExpression _) = 1
 expressionEvalStackSize (BinaryExpression _ left right) = max (expressionEvalStackSize left) (expressionEvalStackSize right) + 1
 
-{--
-    Utility Functions
---}
-whitespace :: Parser String
-whitespace = many $ oneOf " \t\n"
-
-lexeme :: Parser a -> Parser a
-lexeme p = p <* whitespace
-
-symbol :: String -> Parser String
-symbol s = lexeme (string s)
 
 {-
     Statement parsing
@@ -145,19 +134,10 @@ mulExpression :: Parser Expression
 mulExpression = chainl1 divExpression (BinaryExpression Mul <$ symbol "*")
 
 divExpression :: Parser Expression
-divExpression = chainl1 ((ConstantExpression <$> parseNumericLiteral) <|> (variableReference) <|> parens parseExpression) (BinaryExpression Div <$ symbol "/")
+divExpression = chainl1 ((ConstantExpression <$> integerLiteral) <|> (variableReference) <|> parens parseExpression) (BinaryExpression Div <$ symbol "/")
 
 parens :: Parser a -> Parser a
 parens = between (symbol "(") (symbol ")")
 
 variableReference :: Parser Expression
 variableReference = ReferenceExpression <$> (lexeme $ many1 letter)
-
-parseNumericLiteral :: Parser ValueLiteral
-parseNumericLiteral = lexeme $ do
-    sign <- optionMaybe (char '-')
-    matchedInt <- many1 digit
-    let parsedInt = read matchedInt
-    return $ case sign of
-        Nothing -> IntegerLiteral parsedInt
-        Just _ -> IntegerLiteral $ negate parsedInt
