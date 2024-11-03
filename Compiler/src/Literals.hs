@@ -6,7 +6,13 @@ import Text.Parsec.String
 import Utils
 
 data ValueLiteral = IntegerLiteral Integer
+    | BooleanLiteral Bool
     deriving (Show)
+
+booleanLiteral :: Parser ValueLiteral
+booleanLiteral = lexeme $ do
+    value <- symbol "True" <|> symbol "False"
+    return . BooleanLiteral . read $ value
 
 integerLiteral :: Parser ValueLiteral
 integerLiteral = lexeme $ do
