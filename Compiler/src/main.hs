@@ -1,7 +1,11 @@
+module Main where
+
 import Text.Parsec
 import Text.Parsec.Char
 import Text.Parsec.String
 import Text.Parsec.Combinator
+import System.Environment (getArgs)
+import CommandArguments
 
 data Statement = VariableInitialisation String Expression
     | VariableAssignment String Expression
@@ -22,6 +26,12 @@ data ValueLiteral = IntegerLiteral Integer
 
 type StackLocal = (String, Integer)
 
+
+
+main :: IO ()
+main = do
+    options <- parseCommandArgs
+    putStrLn . show $ options
 
 
 {--

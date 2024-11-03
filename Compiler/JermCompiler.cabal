@@ -1,11 +1,15 @@
 cabal-version:      3.0
 name: JermCompiler
+version: 0.0.1
 common warnings
     ghc-options: -Wall
 
 executable JermCompiler
-    import:           warnings
-    main-is:          Main.hs
-    build-depends:    base ^>=4.17.2.1
-    hs-source-dirs:   src
+    import: warnings
+    main-is: Main.hs
+    build-depends:    
+        base ^>=4.17.2.1,
+        optparse-applicative,
+        parsec
+    hs-source-dirs: src
     default-language: GHC2021
