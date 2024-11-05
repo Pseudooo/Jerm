@@ -5,9 +5,11 @@ import Text.Parsec.String
 
 import Utils
 
-data ValueLiteral = IntegerLiteral Integer
-    | BooleanLiteral Bool
-    deriving (Show)
+data ValueLiteral = IntegerLiteral Int | BooleanLiteral Bool
+    deriving Show
+
+literal :: Parser ValueLiteral
+literal = booleanLiteral <|> integerLiteral
 
 booleanLiteral :: Parser ValueLiteral
 booleanLiteral = lexeme $ do
