@@ -5,28 +5,21 @@ import Text.Parsec.Char
 import Text.Parsec.String
 import Text.Parsec.Combinator
 import System.Environment (getArgs)
-import CommandArguments
 import System.IO
 import qualified Data.ByteString.Lazy as BS
 import Data.Binary.Put
 import Data.Word
 
+import CommandArguments
+import Utils
+import Literals
+import Expressions
+
 data Statement = VariableInitialisation String Expression
     | VariableAssignment String Expression
     deriving (Show)
 
-data Expression = ConstantExpression ValueLiteral
-    | BinaryExpression Operator Expression Expression
-    | ReferenceExpression String
-    deriving (Show)
-
-data Operator = Add | Sub | Mul | Div
-    deriving (Show)
-
-data ValueLiteral = IntegerLiteral Integer
-    deriving (Show)
-
-type StackLocal = (String, Integer)
+type StackLocal = (String, Int)
 
 main :: IO ()
 main = do
@@ -39,21 +32,21 @@ main = do
             BS.writeFile (output options) (runPut $ asWords byteCode)
             putStrLn $ "Source code built to " ++ output options
 
-asWords :: [Integer] -> Put
+asWords :: [Int] -> Put
 asWords xs = mapM_ putWord32le (map fromIntegral xs)
 
 {--
     Transpiler
 --}
-transpile :: [Statement] -> [Integer]
+transpile :: [Statement] -> [Int]
 transpile ss = let locals = assignLocalOffsets ss in
     localsSize ss : maxStackSize ss : foldr1 (++) (map (transpileStatement locals) ss)
 
-transpileStatement :: [StackLocal] -> Statement -> [Integer]
+transpileStatement :: [StackLocal] -> Statement -> [Int]
 transpileStatement stackLocals (VariableInitialisation name expr) = transpileExpression stackLocals expr ++ [2] ++ [getLocalOffset stackLocals name]
 transpileStatement stackLocals (VariableAssignment name expr) = transpileExpression stackLocals expr ++ [2] ++ [getLocalOffset stackLocals name] 
 
-getLocalOffset :: [StackLocal] -> String -> Integer
+getLocalOffset :: [StackLocal] -> String -> Int
 getLocalOffset [] _ = -1
 getLocalOffset ((name, offset):xs) requestedName
     | name == requestedName = offset
@@ -62,46 +55,46 @@ getLocalOffset ((name, offset):xs) requestedName
 assignLocalOffsets :: [Statement] -> [StackLocal]
 assignLocalOffsets statements = assignLocalOffsets' 0 statements
     where
-        assignLocalOffsets' :: Integer -> [Statement] -> [(String, Integer)]
+        assignLocalOffsets' :: Int -> [Statement] -> [(String, Int)]
         assignLocalOffsets' _ [] = []
         assignLocalOffsets' i (x:xs) = case x of
             VariableInitialisation name _ -> (name, i) : assignLocalOffsets' (i + 1) xs
             _ -> assignLocalOffsets' i xs
 
-transpileExpression :: [StackLocal] -> Expression -> [Integer]
+transpileExpression :: [StackLocal] -> Expression -> [Int]
 transpileExpression _ (ConstantExpression (IntegerLiteral x)) = 1 : x : []
+transpileExpression _ (ConstantExpression (BooleanLiteral x)) = 1 : (case x == True of
+    True -> 1
+    False -> 0) : []
 transpileExpression stackLocals (ReferenceExpression name) = 3 : getLocalOffset stackLocals name : []
-transpileExpression stackLocals (BinaryExpression _ left right) = transpileExpression stackLocals left ++ transpileExpression stackLocals right ++ [4]
+transpileExpression stackLocals (BinaryExpression op left right) = transpileExpression stackLocals left ++ transpileExpression stackLocals right ++ [operatorOpcode op]
+transpileExpression stackLocals (UnaryExpression op expr) = transpileExpression stackLocals expr ++ [operatorOpcode op]
 
-localsSize :: [Statement] -> Integer
+operatorOpcode :: Operator -> Int
+operatorOpcode Add = 4
+operatorOpcode Sub = 5
+operatorOpcode Equals = 6
+operatorOpcode Not = 7
+operatorOpcode And = 8
+operatorOpcode Or = 9
+
+localsSize :: [Statement] -> Int
 localsSize (x:xs) = case x of
     (VariableInitialisation _ _) -> 1 + localsSize xs
     _ -> localsSize xs
 localsSize [] = 0
 
-maxStackSize :: [Statement] -> Integer
+maxStackSize :: [Statement] -> Int
 maxStackSize xs = foldr max 0 (map statementRequiredStackSize xs)
 
-statementRequiredStackSize :: Statement -> Integer
+statementRequiredStackSize :: Statement -> Int
 statementRequiredStackSize (VariableInitialisation _ expr) = expressionEvalStackSize expr
 statementRequiredStackSize (VariableAssignment _ expr) = expressionEvalStackSize expr
 
-expressionEvalStackSize :: Expression -> Integer
+expressionEvalStackSize :: Expression -> Int
 expressionEvalStackSize (ReferenceExpression _) = 1
 expressionEvalStackSize (ConstantExpression _) = 1
 expressionEvalStackSize (BinaryExpression _ left right) = max (expressionEvalStackSize left) (expressionEvalStackSize right) + 1
-
-{--
-    Utility Functions
---}
-whitespace :: Parser String
-whitespace = many $ oneOf " \t\n"
-
-lexeme :: Parser a -> Parser a
-lexeme p = p <* whitespace
-
-symbol :: String -> Parser String
-symbol s = lexeme (string s)
 
 {-
     Statement parsing
@@ -128,36 +121,3 @@ assignmentStatement = lexeme $ do
     value <- parseExpression
     symbol ";"
     return $ VariableAssignment varName value
-
-{-- 
-    Expression parsing
---}
-parseExpression :: Parser Expression
-parseExpression = lexeme subExpression
-
-subExpression :: Parser Expression
-subExpression = chainl1 addExpression (BinaryExpression Sub <$ symbol "-")
-
-addExpression :: Parser Expression
-addExpression = chainl1 mulExpression (BinaryExpression Add <$ symbol "+")
-
-mulExpression :: Parser Expression
-mulExpression = chainl1 divExpression (BinaryExpression Mul <$ symbol "*")
-
-divExpression :: Parser Expression
-divExpression = chainl1 ((ConstantExpression <$> parseNumericLiteral) <|> (variableReference) <|> parens parseExpression) (BinaryExpression Div <$ symbol "/")
-
-parens :: Parser a -> Parser a
-parens = between (symbol "(") (symbol ")")
-
-variableReference :: Parser Expression
-variableReference = ReferenceExpression <$> (lexeme $ many1 letter)
-
-parseNumericLiteral :: Parser ValueLiteral
-parseNumericLiteral = lexeme $ do
-    sign <- optionMaybe (char '-')
-    matchedInt <- many1 digit
-    let parsedInt = read matchedInt
-    return $ case sign of
-        Nothing -> IntegerLiteral parsedInt
-        Just _ -> IntegerLiteral $ negate parsedInt
