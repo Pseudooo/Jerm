@@ -5,6 +5,10 @@
 #define LDLOC 3
 #define ADD 4
 #define SUB 5
+#define CMP	6
+#define NOT 7
+#define AND 8
+#define OR 9
 
 int exec(int* code, int code_len);
 
@@ -60,13 +64,13 @@ int exec(int* code, int code_len)
 
 		int opCode = code[curr];
 		int jmp = 0;
-		printf("Have opcode %ld at %ld with stack size %ld\n", opCode, curr, *curr_stack_size);
+		printf("Have opcode %d at %d with stack size %d\n", opCode, curr, *curr_stack_size);
 
 		if(opCode == LDCNST) 
 		{
 			int param = code[curr + 1];
 			stack_body[*curr_stack_size] = param;
-			printf("LDCNST Loading %ld to s%ld\n", param, *curr_stack_size);
+			printf("LDCNST Loading %d to s%d\n", param, *curr_stack_size);
 
 			(*curr_stack_size)++;
 			jmp = 2;
@@ -75,7 +79,7 @@ int exec(int* code, int code_len)
 		{
 			int param = code[curr + 1];
 			stack_body[*curr_stack_size] = locals[param];
-			printf("LDLOC Loading .%ld (%ld) to s%ld\n", param, locals[param], *curr_stack_size);
+			printf("LDLOC Loading .%d (%d) to s%d\n", param, locals[param], *curr_stack_size);
 
 			(*curr_stack_size)++;
 			jmp = 2;
@@ -84,7 +88,7 @@ int exec(int* code, int code_len)
 		{
 			int param = code[curr + 1];
 			locals[param] = stack_body[*curr_stack_size - 1];
-			printf("STLOC Storing s%ld (%ld) to .%ld\n", *curr_stack_size - 1, stack_body[*curr_stack_size - 1], param);
+			printf("STLOC Storing s%d (%d) to .%d\n", *curr_stack_size - 1, stack_body[*curr_stack_size - 1], param);
 
 			(*curr_stack_size)--;
 			jmp = 2;
@@ -93,7 +97,7 @@ int exec(int* code, int code_len)
 		{
 			int right = stack_body[*curr_stack_size - 1];
 			int left = stack_body[*curr_stack_size - 2];
-			printf("ADD Executing s%ld (%ld) + s%ld (%ld)\n", *curr_stack_size - 2, left, *curr_stack_size - 1, right);
+			printf("ADD Executing s%d (%d) + s%d (%d)\n", *curr_stack_size - 2, left, *curr_stack_size - 1, right);
 
 			*curr_stack_size -= 2;
 			stack_body[*curr_stack_size] = left + right;
@@ -104,10 +108,53 @@ int exec(int* code, int code_len)
 		{
 			int right = stack_body[*curr_stack_size - 1];
 			int left = stack_body[*curr_stack_size - 2];
-			printf("SUB Executing s%ld (%ld) - s%ld (%ld)\n", *curr_stack_size - 2, left, *curr_stack_size - 1, right);
+			printf("SUB Executing s%d (%d) - s%d (%d)\n", *curr_stack_size - 2, left, *curr_stack_size - 1, right);
 
 			*curr_stack_size -= 2;
 			stack_body[*curr_stack_size] = left - right;
+			(*curr_stack_size)++;
+			jmp = 1;
+		}
+		else if(opCode == CMP)
+		{
+			int right = stack_body[*curr_stack_size - 1];
+			int left = stack_body[*curr_stack_size - 2];
+			printf("CMP Executing s%d (%d) == s%d (%d)\n", *curr_stack_size - 2, left, right, *curr_stack_size - 1);
+
+			*curr_stack_size -= 2;
+			stack_body[*curr_stack_size] = left == right;
+			(*curr_stack_size)++;
+			jmp = 1;
+		}
+		else if(opCode == NOT)
+		{
+			int param = stack_body[*curr_stack_size - 1];
+			printf("NOT Executing s%d (%d)", *curr_stack_size - 1, param);
+
+			*curr_stack_size -= 1;
+			stack_body[*curr_stack_size] = !param;
+			(*curr_stack_size)++;
+			jmp = 1;
+		}
+		else if(opCode == AND)
+		{
+			int right = stack_body[*curr_stack_size - 1];
+			int left = stack_body[*curr_stack_size - 2];
+			printf("AND Executing s%d (%d) == s%d (%d)\n", *curr_stack_size - 2, left, right, *curr_stack_size - 1);
+
+			*curr_stack_size -= 2;
+			stack_body[*curr_stack_size] = left && right;
+			(*curr_stack_size)++;
+			jmp = 1;
+		}
+		else if(opCode == OR)
+		{
+			int right = stack_body[*curr_stack_size - 1];
+			int left = stack_body[*curr_stack_size - 2];
+			printf("OR Executing s%d (%d) == s%d (%d)\n", *curr_stack_size - 2, left, right, *curr_stack_size - 1);
+
+			*curr_stack_size -= 2;
+			stack_body[*curr_stack_size] = left || right;
 			(*curr_stack_size)++;
 			jmp = 1;
 		}
