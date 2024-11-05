@@ -1,0 +1,3 @@
+var a = True;
+var b = False;
+var c = b and a;

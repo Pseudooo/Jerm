@@ -116,5 +116,7 @@ int exec(int* code, int code_len)
 		curr = curr + jmp;
 	}
 
-	printf("Res: %ld & %ld & %ld\n", locals[0], locals[1], locals[2]);
+	printf("Program execution finished, locals state is:\n");
+	for(int i = 0; i < locals_size; i++)
+		printf("locals[%d]: %d\n", i, locals[i]);
 }
