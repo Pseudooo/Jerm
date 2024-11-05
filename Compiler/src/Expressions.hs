@@ -8,17 +8,35 @@ import Utils
 
 data Expression = ConstantExpression ValueLiteral
     | BinaryExpression Operator Expression Expression
+    | UnaryExpression Operator Expression
     | ReferenceExpression String
     deriving (Show)
 
-data Operator = Add | Sub | Mul | Div
+data Operator = Add | Sub | Mul | Div | Equals | And | Or | Not
     deriving (Show)
 
 {-- 
     Expression parsing
 --}
 parseExpression :: Parser Expression
-parseExpression = lexeme subExpression
+parseExpression = lexeme andExpression
+
+andExpression :: Parser Expression
+andExpression = chainl1 orExpression (BinaryExpression And <$ symbol "&&")
+
+orExpression :: Parser Expression
+orExpression = chainl1 equalsExpression (BinaryExpression Or <$ symbol "||")
+
+equalsExpression :: Parser Expression
+equalsExpression = chainl1 notExpression (BinaryExpression Equals <$ symbol "==")
+
+notExpression :: Parser Expression
+notExpression = do
+    negation <- optionMaybe $ symbol "!"
+    innerExpression <- subExpression
+    return $ case negation of
+        Nothing -> innerExpression
+        Just _ -> UnaryExpression Not innerExpression
 
 subExpression :: Parser Expression
 subExpression = chainl1 addExpression (BinaryExpression Sub <$ symbol "-")
@@ -30,7 +48,7 @@ mulExpression :: Parser Expression
 mulExpression = chainl1 divExpression (BinaryExpression Mul <$ symbol "*")
 
 divExpression :: Parser Expression
-divExpression = let base = (ConstantExpression <$> integerLiteral) <|> referenceExpression <|> parens parseExpression 
+divExpression = let base = (ConstantExpression <$> literal) <|> referenceExpression <|> parens parseExpression 
     in chainl1 base (BinaryExpression Div <$ symbol "/")
 
 parens :: Parser a -> Parser a
