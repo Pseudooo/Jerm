@@ -9,6 +9,8 @@
 #define NOT 7
 #define AND 8
 #define OR 9
+#define JMP 10
+#define JMPNIF 11
 
 int exec(int* code, int code_len);
 
@@ -50,6 +52,9 @@ int exec(int* code, int code_len)
 	int stack_frame[1 + locals_size + stack_size];
 
 	int* locals = stack_frame;
+	for(int i = 0; i < locals_size; i++)
+		locals[i] = 0;
+
 	int* curr_stack_size = &stack_frame[locals_size];
 	*curr_stack_size = 0l;
 	int* stack_body = &stack_frame[locals_size + 1];
@@ -157,6 +162,27 @@ int exec(int* code, int code_len)
 			stack_body[*curr_stack_size] = left || right;
 			(*curr_stack_size)++;
 			jmp = 1;
+		}
+		else if(opCode == JMP)
+		{
+			int param = code[curr + 1];
+			printf("JMP Executing (%d)\n", param);
+
+			jmp = param;
+		}
+		else if(opCode == JMPNIF)
+		{
+			int jmpAdd = code[curr + 1];
+			int cmp = stack_body[*curr_stack_size - 1];
+			printf("JMPNIF Executing s%d (%d) == 0 @%d\n", *curr_stack_size - 1, jmpAdd, cmp);
+
+			(*curr_stack_size)--;
+			if(!cmp) {
+				jmp = jmpAdd;
+			}
+			else {
+				jmp = 2;
+			}
 		}
 
 		printf("Jumping %ld\n", jmp);
