@@ -22,17 +22,17 @@ parseExpression :: Parser Expression
 parseExpression = lexeme andExpression
 
 andExpression :: Parser Expression
-andExpression = chainl1 orExpression (BinaryExpression And <$ symbol "&&")
+andExpression = chainl1 orExpression (BinaryExpression And <$ symbol "and")
 
 orExpression :: Parser Expression
-orExpression = chainl1 equalsExpression (BinaryExpression Or <$ symbol "||")
+orExpression = chainl1 equalsExpression (BinaryExpression Or <$ symbol "or")
 
 equalsExpression :: Parser Expression
 equalsExpression = chainl1 notExpression (BinaryExpression Equals <$ symbol "==")
 
 notExpression :: Parser Expression
 notExpression = do
-    negation <- optionMaybe $ symbol "!"
+    negation <- optionMaybe $ symbol "not"
     innerExpression <- subExpression
     return $ case negation of
         Nothing -> innerExpression
