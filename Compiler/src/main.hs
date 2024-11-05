@@ -63,8 +63,20 @@ assignLocalOffsets statements = assignLocalOffsets' 0 statements
 
 transpileExpression :: [StackLocal] -> Expression -> [Int]
 transpileExpression _ (ConstantExpression (IntegerLiteral x)) = 1 : x : []
+transpileExpression _ (ConstantExpression (BooleanLiteral x)) = 1 : (case x == True of
+    True -> 1
+    False -> 0) : []
 transpileExpression stackLocals (ReferenceExpression name) = 3 : getLocalOffset stackLocals name : []
-transpileExpression stackLocals (BinaryExpression _ left right) = transpileExpression stackLocals left ++ transpileExpression stackLocals right ++ [4]
+transpileExpression stackLocals (BinaryExpression op left right) = transpileExpression stackLocals left ++ transpileExpression stackLocals right ++ [operatorOpcode op]
+transpileExpression stackLocals (UnaryExpression op expr) = transpileExpression stackLocals expr ++ [operatorOpcode op]
+
+operatorOpcode :: Operator -> Int
+operatorOpcode Add = 4
+operatorOpcode Sub = 5
+operatorOpcode Equals = 6
+operatorOpcode Not = 7
+operatorOpcode And = 8
+operatorOpcode Or = 9
 
 localsSize :: [Statement] -> Int
 localsSize (x:xs) = case x of
