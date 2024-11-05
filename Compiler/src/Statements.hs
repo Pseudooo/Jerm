@@ -13,7 +13,7 @@ data Statement = VariableInitialisation String Expression
     deriving (Show)
 
 statements :: Parser [Statement]
-statements = lexeme $ many statement
+statements = many statement
 
 statement :: Parser Statement
 statement = ifStatement <|> initialisationStatement <|> assignmentStatement
