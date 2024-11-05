@@ -8,13 +8,15 @@ import Utils
 
 data Statement = VariableInitialisation String Expression
     | VariableAssignment String Expression
+    | IfStatement Expression [Statement]
+    | IfElseStatement Expression [Statement] [Statement]
     deriving (Show)
 
 statements :: Parser [Statement]
 statements = many statement
 
 statement :: Parser Statement
-statement = initialisationStatement <|> assignmentStatement
+statement = initialisationStatement <|> assignmentStatement <|> ifStatement
 
 initialisationStatement :: Parser Statement
 initialisationStatement = lexeme $ do
@@ -32,3 +34,13 @@ assignmentStatement = lexeme $ do
     value <- parseExpression
     symbol ";"
     return $ VariableAssignment varName value
+
+ifStatement :: Parser Statement
+ifStatement = lexeme $ do
+    symbol "if"
+    predicate <- lexeme parseExpression
+    ifBody <- between (symbol "{") (symbol "}") statements
+    elseBodyMaybe <- optionMaybe $ symbol "else" *> between (symbol "{") (symbol "}") statements
+    return $ case elseBodyMaybe of 
+        Nothing -> IfStatement predicate ifBody
+        Just elseBody -> IfElseStatement predicate ifBody elseBody
