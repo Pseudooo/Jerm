@@ -12,7 +12,7 @@ data Expression = ConstantExpression ValueLiteral
     | ReferenceExpression String
     deriving (Show)
 
-data Operator = Add | Sub | Mul | Div | Equals | And | Or | Not
+data Operator = OpAdd | OpSub | OpMul | OpDiv | OpEquals | OpAnd | OpOr | OpNot
     deriving (Show)
 
 {-- 
@@ -22,13 +22,13 @@ parseExpression :: Parser Expression
 parseExpression = lexeme andExpression
 
 andExpression :: Parser Expression
-andExpression = chainl1 orExpression (BinaryExpression And <$ symbol "and")
+andExpression = chainl1 orExpression (BinaryExpression OpAnd <$ symbol "and")
 
 orExpression :: Parser Expression
-orExpression = chainl1 equalsExpression (BinaryExpression Or <$ symbol "or")
+orExpression = chainl1 equalsExpression (BinaryExpression OpOr <$ symbol "or")
 
 equalsExpression :: Parser Expression
-equalsExpression = chainl1 notExpression (BinaryExpression Equals <$ symbol "==")
+equalsExpression = chainl1 notExpression (BinaryExpression OpEquals <$ symbol "==")
 
 notExpression :: Parser Expression
 notExpression = do
@@ -36,20 +36,20 @@ notExpression = do
     innerExpression <- subExpression
     return $ case negation of
         Nothing -> innerExpression
-        Just _ -> UnaryExpression Not innerExpression
+        Just _ -> UnaryExpression OpNot innerExpression
 
 subExpression :: Parser Expression
-subExpression = chainl1 addExpression (BinaryExpression Sub <$ symbol "-")
+subExpression = chainl1 addExpression (BinaryExpression OpSub <$ symbol "-")
 
 addExpression :: Parser Expression
-addExpression = chainl1 mulExpression (BinaryExpression Add <$ symbol "+")
+addExpression = chainl1 mulExpression (BinaryExpression OpAdd <$ symbol "+")
 
 mulExpression :: Parser Expression
-mulExpression = chainl1 divExpression (BinaryExpression Mul <$ symbol "*")
+mulExpression = chainl1 divExpression (BinaryExpression OpMul <$ symbol "*")
 
 divExpression :: Parser Expression
 divExpression = let base = (ConstantExpression <$> literal) <|> referenceExpression <|> parens parseExpression 
-    in chainl1 base (BinaryExpression Div <$ symbol "/")
+    in chainl1 base (BinaryExpression OpDiv <$ symbol "/")
 
 parens :: Parser a -> Parser a
 parens = between (symbol "(") (symbol ")")
