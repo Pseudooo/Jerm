@@ -1,0 +1,22 @@
+on:
+  pull_request:
+    branches:
+      - master
+
+name: Build Compiler
+jobs:
+  build-compiler:
+    name: Hello World
+    runs-on: ubuntu-latest # or macOS-latest, or windows-latest
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.4.8' # Exact version of ghc to use
+
+      - name: 🔨 Build Compiler
+        working-directory: ./Compiler/
+        run: cabal build

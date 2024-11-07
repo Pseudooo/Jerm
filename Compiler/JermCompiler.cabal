@@ -7,6 +7,13 @@ common warnings
 executable JermCompiler
     import: warnings
     main-is: Main.hs
+    other-modules:
+        ByteCodes,
+        CommandArguments,
+        Expressions,
+        Literals,
+        Statements,
+        Utils
     build-depends:    
         base ^>=4.17.2.1,
         optparse-applicative,
