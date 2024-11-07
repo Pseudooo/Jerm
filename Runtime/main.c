@@ -5,12 +5,14 @@
 #define LDLOC 3
 #define ADD 4
 #define SUB 5
-#define CMP	6
-#define NOT 7
-#define AND 8
-#define OR 9
-#define JMP 10
-#define JMPNIF 11
+#define MUL 6
+#define DIV 7
+#define CMP	8
+#define NOT 9
+#define AND 10
+#define OR 11
+#define JMP 12
+#define JMPNIF 13
 
 int exec(int* code, int code_len);
 

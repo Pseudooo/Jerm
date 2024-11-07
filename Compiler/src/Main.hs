@@ -1,17 +1,10 @@
 module Main where
 
-import Text.Parsec
-import Text.Parsec.Char
 import Text.Parsec.String
-import Text.Parsec.Combinator
-import System.Environment (getArgs)
-import System.IO
 import qualified Data.ByteString.Lazy as BS
 import Data.Binary.Put
-import Data.Word
 
 import CommandArguments
-import Utils
 import Literals
 import Expressions
 import Statements
@@ -62,7 +55,7 @@ getLocalOffset ((name, offset):xs) requestedName
     | otherwise = getLocalOffset xs requestedName
 
 assignLocalOffsets :: [Statement] -> [StackLocal]
-assignLocalOffsets statements = assignLocalOffsets' 0 statements
+assignLocalOffsets stmts = assignLocalOffsets' 0 stmts
     where
         assignLocalOffsets' :: Int -> [Statement] -> [(String, Int)]
         assignLocalOffsets' _ [] = []
@@ -108,5 +101,6 @@ expressionEvalStackSize :: Expression -> Int
 expressionEvalStackSize (ReferenceExpression _) = 1
 expressionEvalStackSize (ConstantExpression _) = 1
 expressionEvalStackSize (BinaryExpression _ left right) = max (expressionEvalStackSize left) (expressionEvalStackSize right) + 1
+expressionEvalStackSize (UnaryExpression _ expr) = expressionEvalStackSize expr + 1
 
 

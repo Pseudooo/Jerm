@@ -7,6 +7,8 @@ data ByteCode = LDCNST Int
     | LDLOC Int
     | ADD
     | SUB
+    | MUL
+    | DIV
     | CMP
     | NOT
     | AND
@@ -16,7 +18,7 @@ data ByteCode = LDCNST Int
 
 byteCodesAsInts :: [ByteCode] -> [Int]
 byteCodesAsInts [] = []
-byteCodesAsInts (x:xs) = prepend (byteCodeAsInts x) (byteCodesAsInts xs)
+byteCodesAsInts (bc:bcs) = prepend (byteCodeAsInts bc) (byteCodesAsInts bcs)
     where
         prepend :: [Int] -> [Int] -> [Int]
         prepend [] ints = ints
@@ -32,16 +34,20 @@ byteCodeAsInts (STLOC x) = [2, x]
 byteCodeAsInts (LDLOC x) = [3, x]
 byteCodeAsInts ADD = [4]
 byteCodeAsInts SUB = [5]
-byteCodeAsInts CMP = [6]
-byteCodeAsInts NOT = [7]
-byteCodeAsInts AND = [8]
-byteCodeAsInts OR = [9]
-byteCodeAsInts (JMP x) = [10, x]
-byteCodeAsInts (JMPNIF x) = [11, x]
+byteCodeAsInts MUL = [6]
+byteCodeAsInts DIV = [7]
+byteCodeAsInts CMP = [8]
+byteCodeAsInts NOT = [9]
+byteCodeAsInts AND = [10]
+byteCodeAsInts OR = [11]
+byteCodeAsInts (JMP x) = [12, x]
+byteCodeAsInts (JMPNIF x) = [13, x]
 
 operatorByteCode :: Operator -> ByteCode
 operatorByteCode OpAdd = ADD
 operatorByteCode OpSub = SUB
+operatorByteCode OpMul = MUL
+operatorByteCode OpDiv = DIV
 operatorByteCode OpEquals = CMP
 operatorByteCode OpNot = NOT
 operatorByteCode OpAnd = AND
