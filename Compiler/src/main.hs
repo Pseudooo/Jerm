@@ -15,6 +15,7 @@ import Utils
 import Literals
 import Expressions
 import Statements
+import ByteCodes
 
 type StackLocal = (String, Int)
 
@@ -37,17 +38,18 @@ asWords xs = mapM_ putWord32le (map fromIntegral xs)
 --}
 transpile :: [Statement] -> [Int]
 transpile ss = let locals = assignLocalOffsets ss in
-    localsSize ss : maxStackSize ss : transpileStatements locals ss
+    localsSize ss : maxStackSize ss : byteCodesAsInts (transpileStatements locals ss)
 
-transpileStatements :: [StackLocal] -> [Statement] -> [Int]
+transpileStatements :: [StackLocal] -> [Statement] -> [ByteCode]
 transpileStatements locals ss = foldr1 (++) (map (transpileStatement locals) ss)
 
-transpileStatement :: [StackLocal] -> Statement -> [Int]
-transpileStatement stackLocals (VariableInitialisation name expr) = transpileExpression stackLocals expr ++ [2] ++ [getLocalOffset stackLocals name]
-transpileStatement stackLocals (VariableAssignment name expr) = transpileExpression stackLocals expr ++ [2] ++ [getLocalOffset stackLocals name]
+transpileStatement :: [StackLocal] -> Statement -> [ByteCode]
+transpileStatement stackLocals (VariableInitialisation name expr) = transpileExpression stackLocals expr ++ [STLOC $ getLocalOffset stackLocals name]
+transpileStatement stackLocals (VariableAssignment name expr) = transpileExpression stackLocals expr ++ [STLOC $ getLocalOffset stackLocals name]
 transpileStatement stackLocals (IfStatement predicate body) = let transpiledBody = transpileStatements stackLocals body in
-    transpileExpression stackLocals predicate ++ [11, length transpiledBody] 
-transpileStatement stackLocals (IfElseStatement predicate ifBody elseBody) = transpiledPredicate ++ [11, length transpiledIfBody + 4] ++ transpiledIfBody ++ [10, length transpiledElseBody + 2] ++ transpiledElseBody
+    transpileExpression stackLocals predicate ++ [JMPNIF $ byteCodesSize transpiledBody]
+
+transpileStatement stackLocals (IfElseStatement predicate ifBody elseBody) = transpiledPredicate ++ [JMPNIF $ byteCodesSize transpiledIfBody + 4] ++ transpiledIfBody ++ [JMP $ byteCodesSize transpiledElseBody + 2] ++ transpiledElseBody
     where
         transpiledPredicate = transpileExpression stackLocals predicate
         transpiledIfBody = transpileStatements stackLocals ifBody
@@ -76,22 +78,14 @@ assignLocalOffsets statements = assignLocalOffsets' 0 statements
 
             _ -> assignLocalOffsets' i xs
 
-transpileExpression :: [StackLocal] -> Expression -> [Int]
-transpileExpression _ (ConstantExpression (IntegerLiteral x)) = 1 : x : []
-transpileExpression _ (ConstantExpression (BooleanLiteral x)) = 1 : (case x == True of
+transpileExpression :: [StackLocal] -> Expression -> [ByteCode]
+transpileExpression _ (ConstantExpression (IntegerLiteral x)) = LDCNST x : []
+transpileExpression _ (ConstantExpression (BooleanLiteral x)) = LDCNST (case x of
     True -> 1
     False -> 0) : []
-transpileExpression stackLocals (ReferenceExpression name) = 3 : getLocalOffset stackLocals name : []
-transpileExpression stackLocals (BinaryExpression op left right) = transpileExpression stackLocals left ++ transpileExpression stackLocals right ++ [operatorOpcode op]
-transpileExpression stackLocals (UnaryExpression op expr) = transpileExpression stackLocals expr ++ [operatorOpcode op]
-
-operatorOpcode :: Operator -> Int
-operatorOpcode Add = 4
-operatorOpcode Sub = 5
-operatorOpcode Equals = 6
-operatorOpcode Not = 7
-operatorOpcode And = 8
-operatorOpcode Or = 9
+transpileExpression stackLocals (ReferenceExpression name) = LDLOC (getLocalOffset stackLocals name) : []
+transpileExpression stackLocals (BinaryExpression op left right) = transpileExpression stackLocals left ++ transpileExpression stackLocals right ++ [operatorByteCode op]
+transpileExpression stackLocals (UnaryExpression op expr) = transpileExpression stackLocals expr ++ [operatorByteCode op]
 
 localsSize :: [Statement] -> Int
 localsSize (x:xs) = case x of
