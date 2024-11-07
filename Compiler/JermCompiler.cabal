@@ -4,28 +4,29 @@ version: 0.0.1
 common warnings
     ghc-options: -Wall
 
+library JermCompilerLib
+    exposed-modules: ByteCodes, Expressions, Literals, Statements, Utils
+    hs-source-dirs: lib
+    build-depends: base ^>=4.17.2.1, parsec
+    default-language: GHC2021
+
 executable JermCompiler
     import: warnings
     main-is: Main.hs
-    other-modules:
-        ByteCodes,
-        CommandArguments,
-        Expressions,
-        Literals,
-        Statements,
-        Utils
+    other-modules: CommandArguments
     build-depends:    
         base ^>=4.17.2.1,
         optparse-applicative,
         parsec,
         binary,
-        bytestring
+        bytestring,
+        JermCompilerLib
     hs-source-dirs: src
     default-language: GHC2021
 
 test-suite tests
     type: exitcode-stdio-1.0
     main-is: Main.hs
-    build-depends: base ^>=4.17.2.1, HUnit ^>=1.6, JermCompiler
+    build-depends: base ^>=4.17.2.1, HUnit ^>=1.6, JermCompilerLib, parsec
     hs-source-dirs: tests
     default-language: GHC2021

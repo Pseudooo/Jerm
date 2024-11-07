@@ -6,7 +6,7 @@ import Text.Parsec.String
 import Utils
 
 data ValueLiteral = IntegerLiteral Int | BooleanLiteral Bool
-    deriving Show
+    deriving (Show, Eq)
 
 literal :: Parser ValueLiteral
 literal = booleanLiteral <|> integerLiteral
