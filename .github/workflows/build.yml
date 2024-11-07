@@ -6,7 +6,7 @@ on:
 name: Build Compiler
 jobs:
   build-compiler:
-    name: Hello World
+    name: Build Compiler
     runs-on: ubuntu-latest # or macOS-latest, or windows-latest
     steps:
       - name: 🛒 Checkout
