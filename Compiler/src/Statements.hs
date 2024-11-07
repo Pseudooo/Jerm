@@ -20,25 +20,19 @@ statement = ifStatement <|> initialisationStatement <|> assignmentStatement
 
 initialisationStatement :: Parser Statement
 initialisationStatement = lexeme $ do
-    symbol "var"
-    varName <- lexeme (many1 letter)
-    symbol "="
-    value <- parseExpression
-    symbol ";"
+    varName <- symbol "var" >> lexeme (many1 letter)
+    value <- symbol "=" >> parseExpression <* symbol ";"
     return $ VariableInitialisation varName value
 
 assignmentStatement :: Parser Statement
 assignmentStatement = lexeme $ do
     varName <- lexeme (many1 letter)
-    symbol "="
-    value <- parseExpression
-    symbol ";"
+    value <- symbol "=" >> parseExpression <* symbol ";"
     return $ VariableAssignment varName value
 
 ifStatement :: Parser Statement
 ifStatement = lexeme $ do
-    symbol "if"
-    predicate <- lexeme parseExpression
+    predicate <- symbol "if" >> lexeme parseExpression
     ifBody <- between (symbol "{") (symbol "}") statements
     elseBodyMaybe <- optionMaybe $ symbol "else" *> between (symbol "{") (symbol "}") statements
     return $ case elseBodyMaybe of 
