@@ -22,3 +22,10 @@ executable JermCompiler
         bytestring
     hs-source-dirs: src
     default-language: GHC2021
+
+test-suite tests
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    build-depends: base ^>=4.17.2.1, HUnit ^>=1.6, JermCompiler
+    hs-source-dirs: tests
+    default-language: GHC2021
