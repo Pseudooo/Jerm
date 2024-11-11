@@ -13,9 +13,9 @@ integerLiteralTests = TestList [
 parsePositiveIntegerLiteralTest :: Test
 parsePositiveIntegerLiteralTest = TestCase $ assertEqual "Should parse positive integer" 
     (Right $ IntegerLiteral 12345) 
-    (parse integerLiteral "" "12345")
+    (parse literal "" "12345")
 
 parseNegativeIntegerLiteralTest :: Test
 parseNegativeIntegerLiteralTest = TestCase $ assertEqual "Should parse positive integer" 
     (Right . IntegerLiteral $ -12345) 
-    (parse integerLiteral "" "-12345")
+    (parse literal "" "-12345")
