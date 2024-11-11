@@ -16,7 +16,7 @@ statements :: Parser [Statement]
 statements = many statement
 
 statement :: Parser Statement
-statement = ifStatement <|> initialisationStatement <|> assignmentStatement
+statement =  initialisationStatement <|> assignmentStatement <|> ifStatement
 
 initialisationStatement :: Parser Statement
 initialisationStatement = lexeme $ do
