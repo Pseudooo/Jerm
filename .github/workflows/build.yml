@@ -20,3 +20,7 @@ jobs:
       - name: 🔨 Build Compiler
         working-directory: ./Compiler/
         run: cabal build
+
+      - name: 🧪 Run Tests
+        working-directory: ./Compiler/
+        run: cabal test
