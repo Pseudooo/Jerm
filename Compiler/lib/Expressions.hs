@@ -10,10 +10,10 @@ data Expression = ConstantExpression ValueLiteral
     | BinaryExpression Operator Expression Expression
     | UnaryExpression Operator Expression
     | ReferenceExpression String
-    deriving (Show)
+    deriving (Show, Eq)
 
 data Operator = OpAdd | OpSub | OpMul | OpDiv | OpEquals | OpAnd | OpOr | OpNot
-    deriving (Show)
+    deriving (Show, Eq)
 
 {-- 
     Expression parsing

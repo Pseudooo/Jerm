@@ -10,13 +10,13 @@ data Statement = VariableInitialisation String Expression
     | VariableAssignment String Expression
     | IfStatement Expression [Statement]
     | IfElseStatement Expression [Statement] [Statement]
-    deriving (Show)
+    deriving (Show, Eq)
 
 statements :: Parser [Statement]
 statements = many statement
 
 statement :: Parser Statement
-statement =  initialisationStatement <|> assignmentStatement <|> ifStatement
+statement = ifStatement <|> initialisationStatement <|> assignmentStatement
 
 initialisationStatement :: Parser Statement
 initialisationStatement = lexeme $ do
@@ -32,7 +32,7 @@ assignmentStatement = lexeme $ do
 
 ifStatement :: Parser Statement
 ifStatement = lexeme $ do
-    predicate <- symbol "if" >> lexeme parseExpression
+    predicate <- (try $ symbol "if") >> lexeme parseExpression
     ifBody <- between (symbol "{") (symbol "}") statements
     elseBodyMaybe <- optionMaybe $ symbol "else" *> between (symbol "{") (symbol "}") statements
     return $ case elseBodyMaybe of 
