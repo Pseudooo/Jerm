@@ -2,6 +2,7 @@ module Statements.IfStatementTests where
 
 import Test.HUnit
 import Text.Parsec
+import Data.Either
 import Statements
 import Expressions
 import Literals

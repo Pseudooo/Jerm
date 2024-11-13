@@ -11,7 +11,8 @@ assignmentTests :: Test
 assignmentTests = TestList [
         parseSimpleAssignmentTest,
         parseAssignmentNoTerminatorTest,
-        parseAmbiguousAssignmentTest
+        parseAmbiguousAssignmentTest,
+        parseIfAssignmentFail
     ]
 
 parseSimpleAssignmentTest :: Test
@@ -28,3 +29,8 @@ parseAmbiguousAssignmentTest :: Test
 parseAmbiguousAssignmentTest = TestCase $ assertEqual "Should parse as assignment correctly and not fail as if"
     (Right $ VariableAssignment "i" (ConstantExpression $ IntegerLiteral 1))
     (parse statement "" "i = 1;")
+
+parseIfAssignmentFail :: Test
+parseIfAssignmentFail = TestCase $ assertEqual "Should fail to parse assignment to variable named if"
+    True
+    (isLeft $ parse statement "" "if = 10")
