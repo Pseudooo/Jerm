@@ -37,6 +37,7 @@ localsSize (x:xs) = case x of
     (VariableInitialisation _ _) -> 1 + localsSize xs
     (IfStatement _ ifBody) -> localsSize ifBody + localsSize xs
     (IfElseStatement _ ifBody elseBody) -> localsSize ifBody + localsSize elseBody + localsSize xs
+    (ForLoop initialisation _ _ body) -> localsSize (initialisation : []) + localsSize body + localsSize xs
     _ -> localsSize xs
 localsSize [] = 0
 
