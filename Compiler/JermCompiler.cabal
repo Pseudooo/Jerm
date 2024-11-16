@@ -27,7 +27,7 @@ executable JermCompiler
 test-suite tests
     type: exitcode-stdio-1.0
     main-is: Main.hs
-    other-modules: Statements.IfStatementTests, Statements.AssignmentTests, Literals.IntegerLiteralTests
+    other-modules: Statements.IfStatementTests, Transpilers.LocalStackOffsetTests, Statements.AssignmentTests, Literals.IntegerLiteralTests
     build-depends: base ^>=4.17.2.1, HUnit ^>=1.6, JermCompilerLib, parsec
     hs-source-dirs: tests
     default-language: GHC2021
