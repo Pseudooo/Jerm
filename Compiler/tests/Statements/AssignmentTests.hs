@@ -3,9 +3,9 @@ module Statements.AssignmentTests where
 import Test.HUnit
 import Text.Parsec
 import Data.Either
-import Statements
-import Expressions
-import Literals
+import Parsers.Statements
+import Parsers.Expressions
+import Parsers.Literals
 
 assignmentTests :: Test
 assignmentTests = TestList [

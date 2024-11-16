@@ -3,7 +3,7 @@ module Literals.IntegerLiteralTests where
 import Test.HUnit
 import Text.Parsec
 import Data.Either
-import Literals
+import Parsers.Literals
 
 integerLiteralTests :: Test
 integerLiteralTests = TestList [
