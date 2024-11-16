@@ -1,4 +1,4 @@
-module ByteCodes where
+module Transpilers.ByteCodes where
 
 import Parsers.Expressions
 

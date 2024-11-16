@@ -8,7 +8,7 @@ import CommandArguments
 import Parsers.Literals
 import Parsers.Expressions
 import Parsers.Statements
-import ByteCodes
+import Transpilers.ByteCodes
 
 type StackLocal = (String, Int)
 
