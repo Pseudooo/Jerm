@@ -9,8 +9,7 @@ import Parsers.Literals
 import Parsers.Expressions
 import Parsers.Statements
 import Transpilers.ByteCodes
-
-type StackLocal = (String, Int)
+import Transpilers.LocalStack
 
 main :: IO ()
 main = do
@@ -48,28 +47,17 @@ transpileStatement stackLocals (IfElseStatement predicate ifBody elseBody) = tra
         transpiledIfBody = transpileStatements stackLocals ifBody
         transpiledElseBody = transpileStatements stackLocals elseBody
 
-getLocalOffset :: [StackLocal] -> String -> Int
-getLocalOffset [] _ = -1
-getLocalOffset ((name, offset):xs) requestedName
-    | name == requestedName = offset
-    | otherwise = getLocalOffset xs requestedName
-
-assignLocalOffsets :: [Statement] -> [StackLocal]
-assignLocalOffsets stmts = assignLocalOffsets' 0 stmts
+transpileStatement stackLocals (ForLoop initStatement predicate operation body) = transpiledInitialisation 
+        ++ transpiledPredicate 
+        ++ [JMPNIF $ byteCodesSize transpiledBody + byteCodesSize transpiledOperation + 4] 
+        ++ transpiledBody 
+        ++ transpiledOperation 
+        ++ [JMP . negate $ byteCodesSize transpiledPredicate + byteCodesSize transpiledBody + byteCodesSize transpiledOperation + 2]
     where
-        assignLocalOffsets' :: Int -> [Statement] -> [(String, Int)]
-        assignLocalOffsets' _ [] = []
-        assignLocalOffsets' i (x:xs) = case x of
-            VariableInitialisation name _ -> (name, i) : assignLocalOffsets' (i + 1) xs
-
-            IfStatement _ body -> let nestedAssignments = assignLocalOffsets' i body in
-                nestedAssignments ++ assignLocalOffsets' (length nestedAssignments + i) xs
-
-            IfElseStatement _ ifBody elseBody -> let ifBodyAssignments = assignLocalOffsets' i ifBody in
-                let elseBodyAssignments = assignLocalOffsets' (length ifBodyAssignments + i) elseBody in
-                    ifBodyAssignments ++ elseBodyAssignments ++ assignLocalOffsets' (length ifBodyAssignments + length elseBodyAssignments + i) xs
-
-            _ -> assignLocalOffsets' i xs
+        transpiledInitialisation = transpileStatement stackLocals initStatement
+        transpiledPredicate = transpileExpression stackLocals predicate
+        transpiledOperation = transpileStatement stackLocals operation
+        transpiledBody = transpileStatements stackLocals body
 
 transpileExpression :: [StackLocal] -> Expression -> [ByteCode]
 transpileExpression _ (ConstantExpression (IntegerLiteral x)) = LDCNST x : []
@@ -80,27 +68,6 @@ transpileExpression stackLocals (ReferenceExpression name) = LDLOC (getLocalOffs
 transpileExpression stackLocals (BinaryExpression op left right) = transpileExpression stackLocals left ++ transpileExpression stackLocals right ++ [operatorByteCode op]
 transpileExpression stackLocals (UnaryExpression op expr) = transpileExpression stackLocals expr ++ [operatorByteCode op]
 
-localsSize :: [Statement] -> Int
-localsSize (x:xs) = case x of
-    (VariableInitialisation _ _) -> 1 + localsSize xs
-    (IfStatement _ ifBody) -> localsSize ifBody + localsSize xs
-    (IfElseStatement _ ifBody elseBody) -> localsSize ifBody + localsSize elseBody + localsSize xs
-    _ -> localsSize xs
-localsSize [] = 0
 
-maxStackSize :: [Statement] -> Int
-maxStackSize xs = foldr max 0 (map statementRequiredStackSize xs)
-
-statementRequiredStackSize :: Statement -> Int
-statementRequiredStackSize (VariableInitialisation _ expr) = expressionEvalStackSize expr
-statementRequiredStackSize (VariableAssignment _ expr) = expressionEvalStackSize expr
-statementRequiredStackSize (IfStatement predicate ifBody) = max (expressionEvalStackSize predicate) (maxStackSize ifBody)
-statementRequiredStackSize (IfElseStatement predicate ifBody elseBody) = max (expressionEvalStackSize predicate) (max (maxStackSize ifBody) (maxStackSize elseBody))
-
-expressionEvalStackSize :: Expression -> Int
-expressionEvalStackSize (ReferenceExpression _) = 1
-expressionEvalStackSize (ConstantExpression _) = 1
-expressionEvalStackSize (BinaryExpression _ left right) = max (expressionEvalStackSize left) (expressionEvalStackSize right) + 1
-expressionEvalStackSize (UnaryExpression _ expr) = expressionEvalStackSize expr + 1
 
 
