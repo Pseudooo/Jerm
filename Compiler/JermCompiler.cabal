@@ -5,7 +5,7 @@ common warnings
     ghc-options: -Wall
 
 library JermCompilerLib
-    exposed-modules: ByteCodes, Expressions, Literals, Statements, Utils
+    exposed-modules: ByteCodes, Parsers.Expressions, Parsers.Literals, Parsers.Statements, Parsers.Utils
     hs-source-dirs: lib
     build-depends: base ^>=4.17.2.1, parsec
     default-language: GHC2021

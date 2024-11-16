@@ -5,9 +5,9 @@ import qualified Data.ByteString.Lazy as BS
 import Data.Binary.Put
 
 import CommandArguments
-import Literals
-import Expressions
-import Statements
+import Parsers.Literals
+import Parsers.Expressions
+import Parsers.Statements
 import ByteCodes
 
 type StackLocal = (String, Int)
