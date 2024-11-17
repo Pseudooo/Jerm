@@ -122,6 +122,28 @@ int exec(int* code, int code_len)
 			(*curr_stack_size)++;
 			jmp = 1;
 		}
+		else if(opCode == MUL)
+		{
+			int right = stack_body[*curr_stack_size - 1];
+			int left = stack_body[*curr_stack_size - 2];
+			printf("MUL Executing s%d (%d) - s%d (%d)\n", *curr_stack_size - 2, left, *curr_stack_size - 1, right);
+
+			*curr_stack_size -= 2;
+			stack_body[*curr_stack_size] = left * right;
+			(*curr_stack_size)++;
+			jmp = 1;
+		}
+		else if(opCode == DIV)
+		{
+			int right = stack_body[*curr_stack_size - 1];
+			int left = stack_body[*curr_stack_size - 2];
+			printf("DIV Executing s%d (%d) - s%d (%d)\n", *curr_stack_size - 2, left, *curr_stack_size - 1, right);
+
+			*curr_stack_size -= 2;
+			stack_body[*curr_stack_size] = left / right;
+			(*curr_stack_size)++;
+			jmp = 1;
+		}
 		else if(opCode == CMP)
 		{
 			int right = stack_body[*curr_stack_size - 1];
