@@ -50,32 +50,33 @@ fn exec(code: &Vec<i32>, locals_size: i32, stack_frame: &mut [u8]) {
         let op_code = code[curr];
         let mut jmp = 0;
 
-        match (op_code) {
+        dbg!(curr_stack_size);
+        match op_code {
             LDCNST => {
                 let param = code[curr+1] as u8;
                 stack[curr_stack_size] = param;
-                dbg!("LDCNST :: Loaded {0} to .s{1}", param, curr_stack_size);
+                println!("LDCNST :: Loaded {0} to .s{1}", param, curr_stack_size);
                 curr_stack_size += 1;
                 jmp = 2;
             },
             LDLOC => {
                 let param = code[curr+1] as usize;
                 stack[curr_stack_size] = locals[param];
-                dbg!("LDLOC :: Loaded {0}/.l{1} to .s{2}", locals[param], param, curr_stack_size);
+                println!("LDLOC :: Loaded {0}/.l{1} to .s{2}", locals[param], param, curr_stack_size);
                 curr_stack_size += 1;
                 jmp = 2;
             },
             STLOC => {
                 let param = code[curr+1] as usize;
                 locals[param] = stack[curr_stack_size - 1];
-                dbg!("STLOC :: Stored {0}/.s{1} to .l{2}", stack[curr_stack_size - 1], curr_stack_size - 1, param);
+                println!("STLOC :: Stored {0}/.s{1} to .l{2}", stack[curr_stack_size - 1], curr_stack_size - 1, param);
                 curr_stack_size -= 1;
                 jmp = 2;
             },
             ADD => {
                 let right = stack[curr_stack_size - 1];
                 let left = stack[curr_stack_size - 2];
-                dbg!("ADD :: {0}/.s{1} + {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
+                println!("ADD :: {0}/.s{1} + {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
                 curr_stack_size -= 2;
                 stack[curr_stack_size] = right + left;
                 curr_stack_size += 1;
@@ -84,7 +85,7 @@ fn exec(code: &Vec<i32>, locals_size: i32, stack_frame: &mut [u8]) {
             SUB => {
                 let right = stack[curr_stack_size - 1];
                 let left = stack[curr_stack_size - 2];
-                dbg!("SUB :: {0}/.s{1} - {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
+                println!("SUB :: {0}/.s{1} - {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
                 curr_stack_size -= 2;
                 stack[curr_stack_size] = right - left;
                 curr_stack_size += 1;
@@ -93,7 +94,7 @@ fn exec(code: &Vec<i32>, locals_size: i32, stack_frame: &mut [u8]) {
             MUL => {
                 let right = stack[curr_stack_size - 1];
                 let left = stack[curr_stack_size - 2];
-                dbg!("MUL :: {0}/.s{1} * {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
+                println!("MUL :: {0}/.s{1} * {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
                 curr_stack_size -= 2;
                 stack[curr_stack_size] = right * left;
                 curr_stack_size += 1;
@@ -102,7 +103,7 @@ fn exec(code: &Vec<i32>, locals_size: i32, stack_frame: &mut [u8]) {
             DIV => {
                 let right = stack[curr_stack_size - 1];
                 let left = stack[curr_stack_size - 2];
-                dbg!("DIV :: {0}/.s{1} / {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
+                println!("DIV :: {0}/.s{1} / {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
                 curr_stack_size -= 2;
                 stack[curr_stack_size] = right / left;
                 curr_stack_size += 1;
@@ -111,7 +112,7 @@ fn exec(code: &Vec<i32>, locals_size: i32, stack_frame: &mut [u8]) {
             CMP => {
                 let right = stack[curr_stack_size - 1];
                 let left = stack[curr_stack_size - 2];
-                dbg!("CMP :: {0}/.s{1} == {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
+                println!("CMP :: {0}/.s{1} == {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
                 curr_stack_size -= 2;
                 stack[curr_stack_size] = (right == left) as u8;
                 curr_stack_size += 1;
@@ -119,16 +120,16 @@ fn exec(code: &Vec<i32>, locals_size: i32, stack_frame: &mut [u8]) {
             },
             NOT => {
                 let param = stack[curr_stack_size - 1];
-                dbg!("NOT :: {0}/.s{1}", param, curr_stack_size - 1);
+                println!("NOT :: {0}/.s{1}", param, curr_stack_size - 1);
                 curr_stack_size -= 1;
-                stack[curr_stack_size] = !param;
+                stack[curr_stack_size] = (param == 0) as u8;
                 curr_stack_size += 1;
                 jmp = 1;
             },
             AND => {
                 let right = stack[curr_stack_size - 1];
                 let left = stack[curr_stack_size - 2];
-                dbg!("AND :: {0}/.s{1} + {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
+                println!("AND :: {0}/.s{1} + {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
                 curr_stack_size -= 2;
                 stack[curr_stack_size] = ((right != 0) && (left != 0)) as u8;
                 curr_stack_size += 1;
@@ -137,7 +138,7 @@ fn exec(code: &Vec<i32>, locals_size: i32, stack_frame: &mut [u8]) {
             OR => {
                 let right = stack[curr_stack_size - 1];
                 let left = stack[curr_stack_size - 2];
-                dbg!("OR :: {0}/.s{1} + {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
+                println!("OR :: {0}/.s{1} + {2}/.s{3}", left, curr_stack_size - 2, right, curr_stack_size - 1);
                 curr_stack_size -= 2;
                 stack[curr_stack_size] = ((right != 0) || (left != 0)) as u8;
                 curr_stack_size += 1;
@@ -145,13 +146,13 @@ fn exec(code: &Vec<i32>, locals_size: i32, stack_frame: &mut [u8]) {
             },
             JMP => {
                 let param = code[curr + 1];
-                dbg!("JMP :: {0}", param);
+                println!("JMP :: {0}", param);
                 jmp = param;
             },
             JMPNIF => {
                 let param = code[curr + 1];
                 let cond = stack[curr_stack_size - 1];
-                dbg!("JMPNIF :: {0} if{1}", param, cond);
+                println!("JMPNIF :: {0} if{1}", param, cond);
                 curr_stack_size -= 1;
 
                 if cond == 0 {
@@ -167,7 +168,7 @@ fn exec(code: &Vec<i32>, locals_size: i32, stack_frame: &mut [u8]) {
             }
         }
 
-        curr += jmp as usize;
+        curr = (curr as i32 + jmp) as usize;
     }
 
     dbg!("Execution finished, locals state: ", locals);
