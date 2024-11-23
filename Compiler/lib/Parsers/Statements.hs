@@ -42,7 +42,7 @@ ifStatement = lexeme $ do
 
 forLoop :: Parser Statement
 forLoop = do
-    _ <- lexeme . try . symbol $ "for"
+    _ <- try . symbol $ "for"
     initialisation <- symbol "(" >> statement
     condition <- parseExpression <* symbol ";"
     operation <- statement <* symbol ")"
