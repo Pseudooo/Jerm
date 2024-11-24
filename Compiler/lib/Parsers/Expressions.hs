@@ -1,10 +1,10 @@
-module Expressions where
+module Parsers.Expressions where
 
 import Text.Parsec
 import Text.Parsec.String
 
-import Literals
-import Utils
+import Parsers.Literals
+import Parsers.Utils
 
 data Expression = ConstantExpression ValueLiteral
     | BinaryExpression Operator Expression Expression

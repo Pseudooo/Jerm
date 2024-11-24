@@ -1,9 +1,9 @@
-module Literals where
+module Parsers.Literals where
 
 import Text.Parsec
 import Text.Parsec.String
 
-import Utils
+import Parsers.Utils
 
 data ValueLiteral = IntegerLiteral Int | BooleanLiteral Bool
     deriving (Show, Eq)

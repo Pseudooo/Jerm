@@ -1,22 +1,23 @@
-module Statements where
+module Parsers.Statements where
 
 import Text.Parsec
 import Text.Parsec.String
 
-import Expressions
-import Utils
+import Parsers.Expressions
+import Parsers.Utils
 
 data Statement = VariableInitialisation String Expression
     | VariableAssignment String Expression
     | IfStatement Expression [Statement]
     | IfElseStatement Expression [Statement] [Statement]
+    | ForLoop Statement Expression Statement [Statement]
     deriving (Show, Eq)
 
 statements :: Parser [Statement]
 statements = many statement
 
 statement :: Parser Statement
-statement = ifStatement <|> initialisationStatement <|> assignmentStatement
+statement = ifStatement <|> forLoop <|> initialisationStatement <|> assignmentStatement
 
 initialisationStatement :: Parser Statement
 initialisationStatement = lexeme $ do
@@ -38,3 +39,16 @@ ifStatement = lexeme $ do
     return $ case elseBodyMaybe of 
         Nothing -> IfStatement predicate ifBody
         Just elseBody -> IfElseStatement predicate ifBody elseBody
+
+forLoop :: Parser Statement
+forLoop = do
+    _ <- try . symbol $ "for"
+    initialisation <- symbol "(" >> statement
+    condition <- parseExpression <* symbol ";"
+    operation <- statement <* symbol ")"
+    scope <- optionMaybe $ between (symbol "{") (symbol "}") statements
+    case scope of
+        Nothing -> do
+            scopeSingle <- statement
+            return $ ForLoop initialisation condition operation [scopeSingle]
+        Just forBody -> return $ ForLoop initialisation condition operation forBody

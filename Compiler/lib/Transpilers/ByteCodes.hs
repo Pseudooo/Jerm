@@ -1,6 +1,6 @@
-module ByteCodes where
+module Transpilers.ByteCodes where
 
-import Expressions
+import Parsers.Expressions
 
 data ByteCode = LDCNST Int
     | STLOC Int

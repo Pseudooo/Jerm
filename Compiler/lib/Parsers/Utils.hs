@@ -1,4 +1,4 @@
-module Utils(whitespace, lexeme, symbol) where
+module Parsers.Utils(whitespace, lexeme, symbol) where
 
 import Text.Parsec
 import Text.Parsec.String
